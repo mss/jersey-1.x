@@ -71,6 +71,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -254,7 +255,9 @@ public final class ApacheHttpClient4Handler extends TerminatingClientHandler {
 
                     @Override
                     public InputStream getContent() throws IOException, IllegalStateException {
-                        return null;
+                        ByteArrayOutputStream buffer = new ByteArrayOutputStream(512);
+                        writeTo(buffer);
+                        return new ByteArrayInputStream(buffer.toByteArray());
                     }
 
                     @Override
