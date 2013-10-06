@@ -73,11 +73,17 @@ public class HttpHeadersTest extends AbstractGrizzlyServerTester {
         @POST
         public String post(
                 @HeaderParam("Transfer-Encoding") String transferEncoding,
+                @HeaderParam("Content-Length") Integer contentLength,
                 @HeaderParam("X-CLIENT") String xClient,
                 @HeaderParam("X-WRITER") String xWriter,
+                @HeaderParam("X-CHUNKED") String xChunked,
                 String entity) {
             assertEquals("client", xClient);
-            if (transferEncoding == null || !transferEncoding.equals("chunked"))
+            if (transferEncoding == null)
+                transferEncoding = "identity";
+            assertEquals("Transfer-Encoding", xChunked, transferEncoding);
+            assertEquals("Content-Length", xChunked.equals("chunked") ? null : 4, contentLength);
+            if (!transferEncoding.equals("chunked"))
                 assertEquals("writer", xWriter);
             return entity;
         }
@@ -104,17 +110,38 @@ public class HttpHeadersTest extends AbstractGrizzlyServerTester {
     public HttpHeadersTest(String testName) {
         super(testName);
     }
+    
+    ClientResponse post(Integer chunkedEncodingSize) {
+        DefaultApacheHttpClient4Config config = new DefaultApacheHttpClient4Config();
+        config.getClasses().add(HeaderWriter.class);
+        config.getProperties().put(ApacheHttpClient4Config.PROPERTY_CHUNKED_ENCODING_SIZE, chunkedEncodingSize);
+        ApacheHttpClient4 c = ApacheHttpClient4.create(config);
+        
+        WebResource r = c.resource(getUri().path("test").build());
 
+        boolean chunked = chunkedEncodingSize != null && chunkedEncodingSize.intValue() != 0;
+        return r
+                .header("X-CLIENT", "client")
+                .header("X-CHUNKED", chunked ? "chunked" : "identity")
+                .post(ClientResponse.class, "POST");
+    }
+    
     public void testPost() {
         startServer(HttpMethodResource.class);
 
-        DefaultApacheHttpClient4Config config = new DefaultApacheHttpClient4Config();
-        config.getClasses().add(HeaderWriter.class);
-        ApacheHttpClient4 c = ApacheHttpClient4.create(config);
+        ClientResponse cr = post(null);
+        assertEquals(200, cr.getStatus());
+        assertTrue(cr.hasEntity());
+        cr.close();
+    }
+    
+    public void testPostUnchunked() {
+        ResourceConfig rc = new DefaultResourceConfig(HttpMethodResource.class);
+        rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS,
+                LoggingFilter.class.getName());
+        startServer(rc);
 
-        WebResource r = c.resource(getUri().path("test").build());
-
-        ClientResponse cr = r.header("X-CLIENT", "client").post(ClientResponse.class, "POST");
+        ClientResponse cr = post(null);
         assertEquals(200, cr.getStatus());
         assertTrue(cr.hasEntity());
         cr.close();
@@ -126,14 +153,7 @@ public class HttpHeadersTest extends AbstractGrizzlyServerTester {
                 LoggingFilter.class.getName());
         startServer(rc);
 
-        DefaultApacheHttpClient4Config config = new DefaultApacheHttpClient4Config();
-        config.getClasses().add(HeaderWriter.class);
-        config.getProperties().put(ApacheHttpClient4Config.PROPERTY_CHUNKED_ENCODING_SIZE, 1024);
-        ApacheHttpClient4 c = ApacheHttpClient4.create(config);
-
-        WebResource r = c.resource(getUri().path("test").build());
-
-        ClientResponse cr = r.header("X-CLIENT", "client").post(ClientResponse.class, "POST");
+        ClientResponse cr = post(-1);
         assertEquals(200, cr.getStatus());
         assertTrue(cr.hasEntity());
         cr.close();
