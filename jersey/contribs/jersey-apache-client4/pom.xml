@@ -47,11 +47,15 @@
     <parent>
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-contribs</artifactId>
-        <version>1.18-SNAPSHOT</version>
+        <version>1.17.1</version>
     </parent>
+    <version>1.17.1.p1-issue2126</version>
     <artifactId>jersey-apache-client4</artifactId>
     <packaging>jar</packaging>
     <name>Jersey Apache HTTP Client 4.x</name>
+    <properties>
+        <project.version.1.17>1.17.1</project.version.1.17>
+    </properties>
     <profiles>
         <profile>
             <id>cobertura</id>
@@ -64,13 +68,13 @@
                 <dependency>
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-client</artifactId>
-                    <version>${project.version}</version>
+                    <version>${project.version.1.17}</version>
                     <classifier>cobertura</classifier>
                 </dependency>
                 <dependency>
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-grizzly2</artifactId>
-                    <version>${project.version}</version>
+                    <version>${project.version.1.17}</version>
                     <scope>test</scope>
                     <classifier>cobertura</classifier>
                 </dependency>
@@ -85,12 +89,12 @@
                 <dependency>
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-client</artifactId>
-                    <version>${project.version}</version>
+                    <version>${project.version.1.17}</version>
                 </dependency>
                 <dependency>
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-grizzly2</artifactId>
-                    <version>${project.version}</version>
+                    <version>${project.version.1.17}</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
@@ -105,7 +109,7 @@
                         <configuration>
                             <links>
                                 <link>https://jsr311.java.net/nonav/releases/1.1</link>
-                                <link>https://jersey.java.net/nonav/apidocs/${project.version}/jersey/</link>
+                                <link>https://jersey.java.net/nonav/apidocs/${project.version.1.17}/jersey/</link>
                             </links>
                             <excludePackageNames>com.sun.jersey.client.apache4.impl</excludePackageNames>
                             <notimestamp>true</notimestamp>
